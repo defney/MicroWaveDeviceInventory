@@ -27,11 +27,10 @@ The objective of the module is to:
 
 The measurement cycle is initiated by:
 - An internal scheduler running periodically (e.g., every minute).
-- Optionally, a manual API call to a service endpoint such as `/v1/trigger-cache-quality-measurement`.
 
 ### 3.2 Device Selection
 
-One device is selected per cycle using either a round-robin or a randomized strategy from the MWDI-maintained list of connected devices.
+One device is randomly selected per cycle using either a round-robin or a randomized strategy from the MWDI-maintained list of connected devices. 
 
 ### 3.3 Data Retrieval
 

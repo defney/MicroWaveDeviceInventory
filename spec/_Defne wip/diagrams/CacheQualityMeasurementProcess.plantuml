@@ -1,45 +1,53 @@
-@startuml NotifiedDisconnectedDeviceCausesCacheComparison
+@startuml 01x_CyclicCacheQualityMeasurement
+skinparam responseMessageBelowArrow true
 
-title Cache Quality Measurement Process
+title Cyclic Cache Quality Measurement Process
 
-box "Scheduler (Internal Cron)" 
-  participant "MWDI_Module::Scheduler" as Scheduler
-end box
+participant RO as ro
+participant "/v1/embed-yourself" as mwdi
+participant "/cache/control-construct={mountName}" as cache
+participant "/live/control-construct={mountName}" as live
+participant "/cache-quality-measurements" as store
+participant "/analysis-ui" as client
 
-box "MWDI HTTP Server" 
-  participant "MWDI_Module::MeasurementHandler" as Handler
-end box
+ro -> mwdi : trigger_measurement()
+activate mwdi
 
-box "MWDI:/cache/" 
-  participant "/cache/control-construct={mountName}" as CacheAPI
-end box
+note over mwdi
+Cyclic operation starts for comparing
+cached and live control-constructs
+end note
 
-box "ODL Controller" 
-  participant "/live/control-construct={mountName}" as LiveAPI
-end box
+note over mwdi
+Select a random device from list
+end note
 
-box "ElasticSearch" 
-  participant "/cache-quality-measurements" as ResultStore
-end box
+mwdi -> cache : GET control-construct={mountName}
+cache --> mwdi : cachedControlConstruct
 
-== Periodic Measurement Trigger ==
+mwdi -> live : GET control-construct={mountName}
+live --> mwdi : liveControlConstruct
 
-Scheduler -> Handler : triggerMeasurement()
-Handler -> Handler : selectRandomDevice()
+note over mwdi
+Compare cached and live versions
+Calculate score based on differences
+end note
 
-== Get Data from MWDI Cache ==
-Handler -> CacheAPI : GET control-construct={mountName}
-CacheAPI --> Handler : cachedControlConstruct
+mwdi -> store : PUT diff_summary (deviceId, score, timestamp)
 
-== Get Data from Live ==
-Handler -> LiveAPI : GET control-construct={mountName}
-LiveAPI --> Handler : liveControlConstruct
+' note over mwdi
+' Deactivate until next cycle
+' end note
+' deactivate mwdi
 
-== Compare & Score ==
-Handler -> Handler : compareDataTrees()
-Handler -> Handler : scoreDifferences()
+note over client
+Client triggers result queries
+end note
 
-== Save Result ==
-Handler -> ResultStore : PUT diff_summary (deviceId, score, timestamp)
+client -> store : GET /cache-quality-measurements?deviceId=...
+store --> client : diff_summary for device
+
+client -> store : GET /cache-quality-measurements/grouped-by-vendor
+store --> client : grouped_score_summary
 
 @enduml
