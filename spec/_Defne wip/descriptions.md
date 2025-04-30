@@ -30,7 +30,10 @@ The measurement cycle is initiated by:
 
 ### 3.2 Device Selection
 
-One device is randomly selected per cycle using either a round-robin or a randomized strategy from the MWDI-maintained list of connected devices. 
+Instead of selecting a device randomly, the module queries the MWDI metadata status service to identify the device whose cached ControlConstruct was updated the longest time ago (i.e., has the **oldest timestamp** or no timestamp at all). This ensures that devices with outdated or missing cache entries are prioritized for quality assessment.
+
+This strategy helps systematically improve the overall cache quality by always targeting the least recently updated devices first.
+
 
 ### 3.3 Data Retrieval
 
@@ -60,9 +63,9 @@ Each type of difference is assigned a configurable weight:
 
 | Difference Type         | Weight | Description                                     |
 |-------------------------|--------|-------------------------------------------------|
-| Attribute mismatch      | 1      | Value inconsistency in leaf nodes              |
-| Missing class           | 5      | Class exists in one f them  but missing in other          |        |
-| Object creation/deletion| 4      | Presence or absence of significant data objects|
+| Attribute mismatch      | 1      | Value inconsistency in leaf nodes                |
+| Missing class           | 5      | Class exists in one of them  but missing in other|     
+| Object creation/deletion| 4      | Presence or absence of significant data objects  |
 
 A total weighted score is computed per device and used to quantify the extent of divergence.
 
@@ -73,9 +76,20 @@ The results of each measurement are stored in a designated ElasticSearch index o
 PUT /cache-quality-measurements
 ```
 
+
 ---
 
-## 4. Sample Output
+## 4. Analysis Service
+
+An independent analysis service is provided to allow users and monitoring tools to retrieve and interpret the results of cache quality measurements. This service exposes RESTful endpoints to:
+- Query measurement results by `deviceId`,
+- Retrieve grouped and aggregated quality scores by `vendor`.
+
+The service reads from the persistent measurement store and does not trigger any new measurement processes. It enables visualization of the comparisons.
+
+---
+
+## 5. Sample Output
 
 ```json
 {
@@ -88,4 +102,3 @@ PUT /cache-quality-measurements
   },
   "weighted_score": 33
 }
-```

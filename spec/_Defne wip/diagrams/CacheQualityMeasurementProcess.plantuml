@@ -9,7 +9,6 @@ participant "/v1/provide-device-status-metadata" as metadata
 participant "/cache/control-construct={mountName}" as cache
 participant "/live/control-construct={mountName}" as live
 participant "/cache-quality-measurements" as store
-participant "/analysis-ui" as client
 
 ro -> mwdi : trigger_measurement()
 activate mwdi
@@ -40,15 +39,5 @@ end note
 
 mwdi -> store : PUT diff_summary (deviceId, score, timestamp, deviceType)
 
-
-note over client
-Client triggers result queries
-end note
-
-client -> store : GET /cache-quality-measurements?deviceId=...
-store --> client : diff_summary for device
-
-client -> store : GET /cache-quality-measurements/grouped-by-vendor
-store --> client : grouped_score_summary
 
 @enduml
