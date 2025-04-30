@@ -61,8 +61,7 @@ Each type of difference is assigned a configurable weight:
 | Difference Type         | Weight | Description                                     |
 |-------------------------|--------|-------------------------------------------------|
 | Attribute mismatch      | 1      | Value inconsistency in leaf nodes              |
-| Missing class           | 5      | Class exists in live but not in cache          |
-| New (additional) class  | 5      | Class exists in cache but not in live          |
+| Missing class           | 5      | Class exists in one f them  but missing in other          |        |
 | Object creation/deletion| 4      | Presence or absence of significant data objects|
 
 A total weighted score is computed per device and used to quantify the extent of divergence.
@@ -90,19 +89,3 @@ PUT /cache-quality-measurements
   "weighted_score": 33
 }
 ```
-
-This output includes:
-- The unique identifier of the device.
-- Timestamp of the comparison.
-- A summary of detected differences.
-- The total weighted score reflecting the deviation severity.
-
----
-
-## 5. Integration Points
-
-| Function                 | HTTP Method | Endpoint                                     | Role                         |
-|--------------------------|-------------|----------------------------------------------|------------------------------|
-| Retrieve cache data      | GET         | `/cache/control-construct={mountName}`       | Internal MWDI resource       |
-| Retrieve live data       | GET         | `/live/control-construct={mountName}`        | ODL-based real-time query    |
-| Store comparison result  | PUT         | `/cache-quality-measurements`                | ElasticSearch index endpoint |
